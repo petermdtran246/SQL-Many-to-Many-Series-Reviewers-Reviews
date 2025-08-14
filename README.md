@@ -26,6 +26,8 @@ series: list of TV shows
 reviews: junction table storing one review per (series, reviewer) pair
 
 📊 Challenges & Solutions
+
+
 🔎 1. List all reviews with series
 SELECT s.title, r.rating
 FROM series s
