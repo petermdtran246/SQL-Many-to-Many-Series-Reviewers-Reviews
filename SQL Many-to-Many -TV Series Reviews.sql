@@ -21,8 +21,8 @@ CREATE TABLE reviews (
   FOREIGN KEY (reviewer_id) REFERENCES reviewers(id)
 );
 
--- ========== SEED ==========
--- INSERT SERIES
+-- ========== SEED DATA ==========
+-- Insert TV Series
 INSERT INTO series (title, released_year, genre) VALUES
 ('Archer', 2009, 'Animation'),
 ('Arrested Development', 2003, 'Comedy'),
@@ -39,7 +39,7 @@ INSERT INTO series (title, released_year, genre) VALUES
 ('Seinfeld', 1989, 'Comedy'),
 ('Stranger Things', 2016, 'Drama');
 
--- INSERT REVIEWERS
+-- Insert Reviewers
 INSERT INTO reviewers (first_name, last_name) VALUES
 ('Thomas', 'Stoneman'),
 ('Wyatt',  'Skaggs'),
@@ -49,7 +49,7 @@ INSERT INTO reviewers (first_name, last_name) VALUES
 ('Pinkie', 'Petit'),
 ('Marlon', 'Crafford');
 
--- INSERT REVIEWS
+-- Insert Reviews
 INSERT INTO reviews(series_id, reviewer_id, rating) VALUES
 (1,1,8.0),(1,2,7.5),(1,3,8.5),(1,4,7.7),(1,5,8.9),
 (2,1,8.1),(2,4,6.0),(2,3,8.0),(2,6,8.4),(2,5,9.9),
@@ -70,43 +70,43 @@ SELECT * FROM series;
 SELECT * FROM reviews;
 
 -- ========== QUERIES ==========
--- 1) Liệt kê mọi review kèm series
+-- 1) List all reviews with their series
 SELECT s.title, r.rating
 FROM series s
 JOIN reviews r ON s.id = r.series_id;
 
--- 2) AVG rating theo series (group by chuẩn, tránh gộp nhầm nếu trùng title)
+-- 2) Average rating per series (group by series id and title)
 SELECT s.id, s.title, AVG(r.rating) AS avg_rating
 FROM series s
 JOIN reviews r ON s.id = r.series_id
 GROUP BY s.id, s.title
 ORDER BY avg_rating ASC;
 
--- 2a) Làm tròn 2 số thập phân
+-- 2a) Average rating rounded to 2 decimals
 SELECT s.id, s.title, ROUND(AVG(r.rating), 2) AS avg_rating
 FROM series s
 JOIN reviews r ON s.id = r.series_id
 GROUP BY s.id, s.title
 ORDER BY avg_rating ASC;
 
--- 3) Reviewer đã chấm những điểm nào
+-- 3) Show all ratings left by each reviewer
 SELECT v.first_name, v.last_name, r.rating
 FROM reviewers v
 JOIN reviews r ON v.id = r.reviewer_id;
 
--- 4) Series chưa có review (dùng r.id IS NULL cho chắc)
+-- 4) Series without any reviews
 SELECT s.title AS unreviewed_series
 FROM series s
 LEFT JOIN reviews r ON s.id = r.series_id
 WHERE r.id IS NULL;
 
--- 5) AVG rating theo genre
+-- 5) Average rating grouped by genre
 SELECT s.genre, AVG(r.rating) AS avg_rating
 FROM series s
 JOIN reviews r ON s.id = r.series_id
 GROUP BY s.genre;
 
--- 6) Thống kê theo reviewer + STATUS
+-- 6) Reviewer statistics (count, min, max, avg, status)
 SELECT 
   v.first_name, 
   v.last_name, 
@@ -120,7 +120,7 @@ LEFT JOIN reviews r ON v.id = r.reviewer_id
 GROUP BY v.id, v.first_name, v.last_name
 ORDER BY v.last_name, v.first_name;
 
--- 7) Bảng 3 cột: title | rating | reviewer (JOIN 3 bảng đúng khóa)
+-- 7) Join all three tables: series | rating | reviewer
 SELECT 
   s.title,
   r.rating,
@@ -130,16 +130,15 @@ INNER JOIN series    s ON r.series_id   = s.id
 INNER JOIN reviewers v ON r.reviewer_id = v.id
 ORDER BY s.title, v.last_name, v.first_name;
 
--- (Optional) 3 cách viết tương đương:
--- Cách 1: FROM reviews (đang dùng ở trên)
--- Cách 2:
+-- Alternative join orders (equivalent results)
+-- Option 2: Start from series
 SELECT 
   s.title, r.rating, CONCAT(v.first_name, ' ', v.last_name) AS reviewer
 FROM series s
 JOIN reviews r   ON r.series_id   = s.id
 JOIN reviewers v ON r.reviewer_id = v.id;
 
--- Cách 3:
+-- Option 3: Start from reviewers
 SELECT 
   s.title, r.rating, CONCAT(v.first_name, ' ', v.last_name) AS reviewer
 FROM reviewers v
